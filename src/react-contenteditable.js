@@ -46,7 +46,18 @@ export default class ContentEditable extends React.Component {
     let optional = ['style', 'className', 'disabled', 'tagName'];
 
     // Handle additional properties
-    return optional.some(name => props[name] !== nextProps[name]);
+    return optional.some(name => {
+      if (name === 'style') {
+        // styles are objects, so comparison by reference will always
+        // return false. This means, if the component has a style, it will
+        // update after every change, resetting the cursor to position 0
+        //
+        // the order of keys should not change, so use this insecure comparison
+        return JSON.stringify(props.style) !== JSON.stringify(nextProps.style)
+      }
+
+      return props[name] !== nextProps[name]
+    });
   }
 
   componentDidUpdate() {
