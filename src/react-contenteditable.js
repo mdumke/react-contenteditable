@@ -1,5 +1,7 @@
 import React from 'react';
 
+let stripNbsp = str => str.replace(/&nbsp;|\u202F|\u00A0/g, ' ');
+
 export default class ContentEditable extends React.Component {
   constructor() {
     super();
@@ -34,11 +36,14 @@ export default class ContentEditable extends React.Component {
     }
 
     // ...or if html really changed... (programmatically, not by user edit)
-    if (nextProps.html !== htmlEl.innerHTML && nextProps.html !== props.html) {
+    if (
+      stripNbsp(nextProps.html) !== stripNbsp(htmlEl.innerHTML) &&
+      nextProps.html !== props.html
+    ) {
       return true;
     }
 
-    let optional = ['style', 'className', 'disable', 'tagName'];
+    let optional = ['style', 'className', 'disabled', 'tagName'];
 
     // Handle additional properties
     return optional.some(name => props[name] !== nextProps[name]);
@@ -56,7 +61,13 @@ export default class ContentEditable extends React.Component {
     if (!this.htmlEl) return;
     var html = this.htmlEl.innerHTML;
     if (this.props.onChange && html !== this.lastHtml) {
-      evt.target = { value: html };
+      // Clone event with Object.assign to avoid 
+      // "Cannot assign to read only property 'target' of object"
+      var evt = Object.assign({}, evt, { 
+        target: { 
+          value: html 
+        } 
+      });
       this.props.onChange(evt);
     }
     this.lastHtml = html;
